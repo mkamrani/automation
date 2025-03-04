@@ -3,7 +3,11 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - dev
+      - main
+      - "**"  # Matches all branches for dev deployments
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       environment:
@@ -40,10 +44,10 @@ jobs:
   deploy_dev:
     needs: e2e_test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.ref != 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: Deploy to Dev
-        run: echo "Deploying to dev environment..."
+        run: echo "Deploying to development environment for branch ${{ github.ref_name }}..."
 
   deploy_stg:
     needs: e2e_test
