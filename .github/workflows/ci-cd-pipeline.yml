@@ -1,0 +1,70 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment (stg/uat)'
+        required: true
+        type: choice
+        options:
+          - stg
+          - uat
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Build
+        run: echo "Building the project..."
+
+  regression_test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Regression Test
+        run: echo "Running regression tests..."
+
+  e2e_test:
+    needs: regression_test
+    runs-on: ubuntu-latest
+    steps:
+      - name: E2E Test
+        run: echo "Running end-to-end tests..."
+
+  deploy_dev:
+    needs: e2e_test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Deploy to Dev
+        run: echo "Deploying to dev environment..."
+
+  deploy_stg:
+    needs: e2e_test
+    runs-on: ubuntu-latest
+    if: github.event.inputs.environment == 'stg'
+    steps:
+      - name: Deploy to Staging
+        run: echo "Deploying to staging environment..."
+
+  deploy_uat:
+    needs: e2e_test
+    runs-on: ubuntu-latest
+    if: github.event.inputs.environment == 'uat'
+    steps:
+      - name: Deploy to UAT
+        run: echo "Deploying to UAT environment..."
+
+  deploy_prod:
+    needs: e2e_test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy to Prod
+        run: echo "Deploying to production environment..."
